@@ -14,12 +14,22 @@
 </head>
 <body>
     <h2>📺 My Secret Red Video Player</h2>
+    
+    <!-- 1. Search Controls -->
     <div class="search-box">
         <input type="text" id="query" placeholder="Search for a video...">
         <button onclick="searchVideos()">Search</button>
     </div>
+
+    <!-- 2. Video Player Box (Hidden until you click a card) -->
+    <div id="player-container" style="margin-bottom: 30px; display: none;">
+        <video id="video-player" controls autoplay style="width: 100%; max-width: 800px; border: 2px solid #cc0000; border-radius: 8px;"></video>
+    </div>
+
+    <!-- 3. Where your search results appear -->
     <div class="video-grid" id="results"></div>
 
+    <!-- 4. Logic Engine (JavaScript goes down here safely) -->
     <script>
         async function searchVideos() {
             const q = document.getElementById('query').value;
@@ -30,14 +40,32 @@
             
             data.forEach(video => {
                 if(video.type === 'video') {
+                    // Pull thumbnails accurately from Invidious structure
+                    let thumbUrl = '';
+                    if (video.videoThumbnails && video.videoThumbnails.length > 0) {
+                        thumbUrl = video.videoThumbnails[0].url;
+                    } else if (video.videoThumbnails) {
+                        thumbUrl = video.videoThumbnails.url || '';
+                    }
+
                     grid.innerHTML += `
-                        <div class="video-card" onclick="window.open('https://puffyan.us{video.videoId}')">
-                            <img src="${video.videoThumbnails[0].url}">
+                        <div class="video-card" onclick="playVideo('${video.videoId}')">
+                            <img src="${thumbUrl}">
                             <h4>${video.title}</h4>
                         </div>
                     `;
                 }
             });
+        }
+
+        function playVideo(id) {
+            const playerContainer = document.getElementById('player-container');
+            const videoPlayer = document.getElementById('video-player');
+            
+            // Routes streaming segments directly through your proxy path
+            videoPlayer.src = `/api/stream?id=${id}`;
+            playerContainer.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
